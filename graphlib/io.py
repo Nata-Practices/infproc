@@ -2,7 +2,7 @@ import json
 import os
 from tkinter import messagebox
 
-from .utils import add_vertex, create_edge, set_end_vertex, set_start_vertex
+from .utils import add_vertex, create_edge, set_end_vertex, set_start_vertex, update_matrix_display
 
 
 def save_graph(graph, task):
@@ -65,6 +65,8 @@ def load_graph(graph, task):
         if graph_data["end_vertex"] is not None:
             graph.end_vertex = graph.vertices[graph_data["end_vertex"]]
             set_end_vertex(graph, graph.end_vertex)
+
+        update_matrix_display(graph)
 
     except FileNotFoundError:
         messagebox.showerror("Ошибка", f"Файл graph_{task}.json не найден")

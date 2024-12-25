@@ -1,5 +1,7 @@
 import tkinter
-from tkinter import messagebox, simpledialog
+from tkinter import simpledialog, Entry, END, messagebox, Label
+from .tooltip import ToolTip
+
 
 def get_vertex_at(graph, x, y):
     """
@@ -39,9 +41,10 @@ def add_vertex(graph, x, y):
         new_index = next(i for i in range(10) if i not in used_indices)
         vertex_id = graph.canvas.create_oval(x - 15, y - 15, x + 15, y + 15, fill="lightblue")
         vertex_text = graph.canvas.create_text(x, y, text=str(new_index))
-        graph.vertices.append({"id": vertex_id, "text": vertex_text, "edges": []})
+        graph.vertices.append({"id": vertex_id, "name": new_index, "text": vertex_text, "edges": []})
         update_graph_matrix(graph)
-
+        update_matrix_display(graph)
+        
 
 def delete_vertex(graph, vertex):
     """
@@ -71,7 +74,8 @@ def delete_vertex(graph, vertex):
 
     graph.vertices.remove(vertex)
     update_graph_matrix(graph)
-
+    update_matrix_display(graph)
+    
 
 def get_edge_coords(start_vertex, end_vertex, canvas):
     """
@@ -129,6 +133,8 @@ def add_edge(graph, start_vertex):
         create_edge(graph, start_vertex, end_vertex, weight)
     else:
         messagebox.showwarning("Ошибка", "Данной вершины не существует")
+    
+    update_matrix_display(graph)
 
 
 def update_edge(graph, edge_id):
@@ -170,11 +176,12 @@ def delete_edge(graph, start_vertex):
                 if edge_id in start_vertex["edges"]:
                     start_vertex["edges"].remove(edge_id)
 
-                messagebox.showinfo("Успех", "Дуга удалена.")
+                update_matrix_display(graph)
                 return
 
             messagebox.showwarning("Ошибка", "Дуга между этими вершинами не найдена.")
-
+    
+    
 def change_edge_weight(graph, start_vertex):
     """
     Изменяет вес ребра, запрашивая конечную вершину и новый вес.
@@ -199,7 +206,9 @@ def change_edge_weight(graph, start_vertex):
                     graph.edges[edge_id] = (start_v, end_v, new_weight, label_id)
                     graph.canvas.itemconfig(label_id, text=str(new_weight))
 
+                update_matrix_display(graph)
                 return
+
         messagebox.showwarning("Ошибка", "Дуга между этими вершинами не найдена.")
 
 
@@ -223,12 +232,134 @@ def change_edge_direction(graph, start_vertex):
             if start_v == start_vertex and end_v == end_vertex:
                 graph.edges[edge_id] = (end_vertex, start_vertex, weight, label_id)
                 update_edge(graph, edge_id)
-                messagebox.showinfo("Успех", "Направление дуги изменено.")
+                update_matrix_display(graph)
                 return
 
         messagebox.showwarning("Ошибка", "Дуга между этими вершинами не найдена.")
 
 
+def get_adjacency_matrix(graph):
+    """
+    Возвращает текущую матрицу смежности графа.
+    """
+    n = len(graph.vertices)
+    matrix = [[0 for _ in range(n)] for _ in range(n)]
+
+    for edge in graph.edges.values():
+        start_vertex, end_vertex, weight, _ = edge
+        start_idx = graph.vertices.index(start_vertex)
+        end_idx = graph.vertices.index(end_vertex)
+        matrix[start_idx][end_idx] = weight
+
+    return matrix
+
+
+def on_matrix_change(graph, event, x, y):
+    """
+    Обрабатывает изменения в матрице смежности.
+    При изменении веса дуги обновляет граф.
+    """
+    new_value = event.widget.get()
+
+    try:
+        new_weight = int(new_value)
+    except ValueError:
+        messagebox.showwarning("Неверный ввод", "Введите целое число для веса дуги.")
+        previous_weight = get_adjacency_matrix(graph)[x][y]
+        event.widget.delete(0, END)
+        event.widget.insert(0, str(previous_weight))
+        return
+
+    if x < len(graph.vertices) and y < len(graph.vertices):
+        edge_found = False
+        edge_id = 0
+        for edge_id, (start_v, end_v, weight, _) in graph.edges.items():
+            if graph.vertices.index(start_v) == x and graph.vertices.index(end_v) == y:
+                graph.edges[edge_id] = (start_v, end_v, new_weight, _)
+                edge_found = True
+                break
+
+        if edge_found:
+            _, _, _, label_id = graph.edges[edge_id]
+            graph.canvas.itemconfig(label_id, text=str(new_weight))
+        else:
+            start_vertex = graph.vertices[x]
+            end_vertex = graph.vertices[y]
+            create_edge(graph, start_vertex, end_vertex, new_weight)
+
+        update_matrix_display(graph)
+
+def update_matrix_display(graph):
+    """
+    Обновляет отображение матрицы смежности в matrix_inner_frame.
+    """
+    # Очистка существующих Entry виджетов
+    for row in graph.matrix_entries:
+        for entry in row:
+            entry.destroy()
+    graph.matrix_entries = []
+
+    adjacency_matrix = get_adjacency_matrix(graph)
+
+    # Создание заголовка матрицы (номера столбцов)
+    header_row = []
+    for col, vertex in enumerate(graph.vertices):
+        name = graph.canvas.itemcget(vertex["text"], "text")
+        label = Label(
+            graph.matrix_inner_frame,
+            text=name,
+            width=5,
+            justify='center',
+            bg="#d3d3d3",
+            relief='groove'
+        )
+        label.grid(row=0, column=col + 1, padx=1, pady=1)
+        header_row.append(label)
+    graph.matrix_entries.append(header_row)
+
+    # Создание строк матрицы
+    for i, row_data in enumerate(adjacency_matrix):
+        row_entries = []
+        name = graph.canvas.itemcget(graph.vertices[i]["text"], "text")
+        label = Label(
+            graph.matrix_inner_frame,
+            text=name,
+            width=5,
+            justify='center',
+            bg="#d3d3d3",
+            relief='groove'
+        )
+        label.grid(row=i + 1, column=0, padx=1, pady=1)
+        row_entries.append(label)
+        for j, value in enumerate(row_data):
+
+            if i == j:
+                entry = Entry(graph.matrix_inner_frame, width=5, justify='center', state='readonly', bg="#f0f0f0")
+                entry.insert(0, "0")
+                ToolTip(entry, "Нет связи (диагональ)")
+            else:
+                entry = Entry(graph.matrix_inner_frame, width=5, justify='center')
+                entry.insert(0, str(value))
+                entry.bind("<FocusOut>", lambda event, x=i, y=j: on_matrix_change(graph, event, x, y))
+
+                if value > 0:
+                    entry.config(bg="#ccffcc")
+                elif value < 0:
+                    entry.config(bg="#ffcccc")
+                else:
+                    entry.config(bg="#ffffff")
+
+                start_vertex = graph.vertices[i]["name"]
+                end_vertex = graph.vertices[j]["name"]
+                weight = f"Вес {value}" if value != 0 else "Нет связи"
+                ToolTip(entry, f"От {start_vertex} к {end_vertex}: {weight}")
+
+            entry.grid(row=i+1, column=j+1, padx=1, pady=1)
+            row_entries.append(entry)
+
+        graph.matrix_entries.append(row_entries)
+
+            
 def update_graph_matrix(graph):
     """
     Обновляет матрицу смежности графа на основе текущих рёбер.

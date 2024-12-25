@@ -18,6 +18,8 @@ class PacketRoutingApp(BaseGraphApp):
 
         self.add_button("Запустить передачу", lambda: self.start_transmission())
         self.add_button("Просмотр таблиц маршрутизации", lambda: self.show_routing_tables())
+        self.add_button("Сохранить граф", lambda: graphlib.save_graph(self, "3"))
+        self.add_button("Загрузить граф", lambda: graphlib.load_graph(self, "3"))
 
     def start_transmission(self):
         if self.start_vertex is None or self.end_vertex is None:
