@@ -35,7 +35,6 @@ class MainMenu:
         self.exit_button.pack(pady=20)
 
     def open_lab1(self):
-        # Открываем новое окно для редактора графа
         lab1_window = tk.Toplevel(self.root)
         GraphApp(lab1_window)
 

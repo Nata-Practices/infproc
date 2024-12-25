@@ -1,15 +1,16 @@
 import threading
-from tkinter import Toplevel, Text, END
+import tkinter
+from tkinter import Toplevel, Text, END, messagebox, simpledialog
 
-from utils.graph_editor import *
+import graphlib
 
 
 class PacketRoutingApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Лабораторная работа 3: Симуляция передачи пакетов")
-        self.canvas = tk.Canvas(root, width=600, height=600, bg="white")
-        self.canvas.pack(fill=tk.BOTH, expand=True)
+        self.canvas = tkinter.Canvas(root, width=600, height=600, bg="white")
+        self.canvas.pack(fill=tkinter.BOTH, expand=True)
 
         self.graph = []
         self.vertices = []
@@ -18,19 +19,19 @@ class PacketRoutingApp:
         self.current_menu = None
         self.start_vertex = None
         self.end_vertex = None
-        self.selected_method = tk.StringVar(value="Виртуальный канал")
+        self.selected_method = tkinter.StringVar(value="Виртуальный канал")
 
-        self.canvas.bind("<Button-1>", lambda event: on_left_click(self, event))
-        self.canvas.bind("<Button-2>", lambda event: on_right_click(self, event, "3"))
-        self.canvas.bind("<Button-3>", lambda event: on_right_click(self, event, "3"))
+        self.canvas.bind("<Button-1>", lambda event: graphlib.on_left_click(self, event))
+        self.canvas.bind("<Button-2>", lambda event: graphlib.on_right_click(self, event, "3"))
+        self.canvas.bind("<Button-3>", lambda event: graphlib.on_right_click(self, event, "3"))
 
-        control_frame = tk.Frame(root)
+        control_frame = tkinter.Frame(root)
         control_frame.pack()
 
-        tk.Label(control_frame, text="Метод маршрутизации:").pack(side=tk.LEFT)
-        tk.OptionMenu(control_frame, self.selected_method, "Виртуальный канал", "Дейтаграммный метод").pack(side=tk.LEFT)
-        tk.Button(control_frame, text="Запустить передачу", command=self.start_transmission).pack(side=tk.LEFT, padx=5)
-        tk.Button(control_frame, text="Просмотр таблиц маршрутизации", command=self.show_routing_tables).pack(side=tk.LEFT, padx=5)
+        tkinter.Label(control_frame, text="Метод маршрутизации:").pack(side=tkinter.LEFT)
+        tkinter.OptionMenu(control_frame, self.selected_method, "Виртуальный канал", "Дейтаграммный метод").pack(side=tkinter.LEFT)
+        tkinter.Button(control_frame, text="Запустить передачу", command=self.start_transmission).pack(side=tkinter.LEFT, padx=5)
+        tkinter.Button(control_frame, text="Просмотр таблиц маршрутизации", command=self.show_routing_tables).pack(side=tkinter.LEFT, padx=5)
 
         self.packet_info_window = None
 
@@ -53,8 +54,7 @@ class PacketRoutingApp:
         # Используем алгоритм Дейкстры для установления пути
         start_idx = self.vertices.index(self.start_vertex)
         end_idx = self.vertices.index(self.end_vertex)
-        dist, parent = dijkstra_with_parent(self.graph, start_idx)
-        path = reconstruct_path(parent, start_idx, end_idx)
+        dist, path = graphlib.dijkstra(self.graph, start_idx, end_idx, True)
         if not path:
             messagebox.showwarning("Ошибка", "Путь между узлами не существует.")
             return
@@ -132,8 +132,7 @@ class PacketRoutingApp:
 
     def move_datagram_packet(self, packet, current_idx, end_idx):
         if current_idx != end_idx:
-            dist, parent = dijkstra_with_parent(self.graph, current_idx)
-            path = reconstruct_path(parent, current_idx, end_idx)
+            dist, path = graphlib.dijkstra(self.graph, current_idx, end_idx, True)
             if not path or len(path) < 2:
                 messagebox.showwarning("Ошибка", "Путь между узлами не существует.")
                 self.canvas.delete(packet)
@@ -166,7 +165,7 @@ class PacketRoutingApp:
                 break
 
     def show_packet_info(self, info):
-        if self.packet_info_window is None or not tk.Toplevel.winfo_exists(self.packet_info_window):
+        if self.packet_info_window is None or not tkinter.Toplevel.winfo_exists(self.packet_info_window):
             self.packet_info_window = Toplevel(self.root)
             self.packet_info_window.title("Информация о пакетах")
             self.packet_text = Text(self.packet_info_window, width=50, height=20)
