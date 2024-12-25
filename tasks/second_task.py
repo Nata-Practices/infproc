@@ -1,40 +1,16 @@
 import time
-import tkinter
 from tkinter import messagebox
 
 import graphlib
+from tasks.base_graph import BaseGraphApp
 
 
-class FloydApp:
+class FloydApp(BaseGraphApp):
     def __init__(self, root):
-        self.root = root
-        self.root.title("Лабораторная работа 2: Алгоритмы Дейкстры и Флойда")
-        self.canvas = tkinter.Canvas(root, width=600, height=600, bg="white")
-        self.canvas.pack(fill=tkinter.BOTH, expand=True)
-
-        self.graph = []
-        self.vertices = []
-        self.edges = {}
-        self.selected_vertex = None
-        self.start_vertex = None
-        self.end_vertex = None
-        self.current_menu = None
-
-        self.canvas.bind("<Button-1>", lambda event: graphlib.on_left_click(self, event))
-        self.canvas.bind("<Button-2>", lambda event: graphlib.on_right_click(self, event, "2"))
-        self.canvas.bind("<Button-3>", lambda event: graphlib.on_right_click(self, event, "2"))
-
-        self.button_frame = tkinter.Frame(root)
-        self.button_frame.pack()
-
-        self.run_dijkstra_button = tkinter.Button(self.button_frame, text="Запустить алгоритм Дейкстры", command=lambda: self.run_algorithm("dijkstra"))
-        self.run_dijkstra_button.pack(side=tkinter.LEFT, padx=5, pady=5)
-
-        self.run_floyd_button = tkinter.Button(self.button_frame, text="Запустить алгоритм Флойда", command=lambda: self.run_algorithm("floyd"))
-        self.run_floyd_button.pack(side=tkinter.LEFT, padx=5, pady=5)
-
-        self.compare_button = tkinter.Button(self.button_frame, text="Сравнить время выполнения", command=self.compare_algorithms)
-        self.compare_button.pack(side=tkinter.LEFT, padx=5, pady=5)
+        super().__init__(root, "Алгоритмы Дейкстры и Флойда", "2")
+        self.add_button("Запустить Дейкстру", lambda: self.run_algorithm("dijkstra"))
+        self.add_button("Запустить Флойда", lambda: self.run_algorithm("floyd"))
+        self.add_button("Сравнить время выполнения", lambda: self.compare_algorithms())
 
     def run_algorithm(self, algorithm):
         if not self.graph:

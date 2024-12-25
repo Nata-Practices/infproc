@@ -1,30 +1,13 @@
-import tkinter
 from tkinter import messagebox
 
 import graphlib
+from tasks.base_graph import BaseGraphApp
 
 
-class GraphApp:
+class GraphApp(BaseGraphApp):
     def __init__(self, root):
-        self.root = root
-        self.root.title("Редактор Графа")
-        self.canvas = tkinter.Canvas(root, width=600, height=600, bg="white")
-        self.canvas.pack(fill=tkinter.BOTH, expand=True)
-
-        self.graph = []
-        self.vertices = []
-        self.edges = {}
-        self.selected_vertex = None
-        self.start_vertex = None
-        self.end_vertex = None
-        self.current_menu = None
-
-        self.canvas.bind("<Button-1>", lambda event: graphlib.on_left_click(self, event))
-        self.canvas.bind("<Button-3>", lambda event: graphlib.on_right_click(self, event, "1"))
-        self.canvas.bind("<Button-2>", lambda event: graphlib.on_right_click(self, event, "1"))
-
-        self.find_path_button = tkinter.Button(root, text="Найти кратчайший путь", command=self.find_shortest_path)
-        self.find_path_button.pack()
+        super().__init__(root, "Редактор графа", "1")
+        self.add_button("Найти кратчайший путь", self.find_shortest_path)
 
     def find_shortest_path(self):
         if not (self.start_vertex and self.end_vertex):
