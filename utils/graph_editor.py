@@ -320,6 +320,8 @@ def delete_vertex(graph, vertex):
 
 def save_graph(graph, task):
     graph_data = {
+        "start_vertex": graph.start_vertex,
+        "end_vertex": graph.end_vertex,
         "vertices": [{"coords": graph.canvas.coords(v["id"])} for v in graph.vertices],
         "edges": [(graph.vertices.index(start_v), graph.vertices.index(end_v), weight) for
                   _, (start_v, end_v, weight, _) in graph.edges.items()]
@@ -350,6 +352,10 @@ def load_graph(graph, task):
             start_vertex = graph.vertices[start_idx]
             end_vertex = graph.vertices[end_idx]
             add_edge_with_weight(graph, start_vertex, end_vertex, weight)
+
+        if graph_data["start_vertex"] is not None:
+            set_start_vertex(graph, graph_data["start_vertex"])
+            set_end_vertex(graph, graph_data["end_vertex"])
 
     except FileNotFoundError:
         messagebox.showerror("Ошибка", f"Файл graph_{task}.json не найден")
