@@ -10,10 +10,11 @@ class MainMenu:
     def __init__(self, _root):
         self.root = _root
         self.root.title("Главное меню")
-        self.root.geometry("450x350")
+        self.root.geometry("450x360")
 
         self.label = tk.Label(_root, text="Выберите лабораторную работу", font=("Courier", 14))
-        self.label1 = tk.Label(_root, text="Гордеева Наталья Сергеевна", font=("Courier", 14))
+        self.label1 = tk.Label(_root, text="Гордеева Наталия Сергеевна \n"
+                                           "Пудовкин Александр Павлович", font=("Courier", 14))
         self.label.pack(pady=20)
         self.label1.pack(pady=0)
 
