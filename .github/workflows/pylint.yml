@@ -41,7 +41,7 @@ jobs:
           echo "score=$score" >> "$GITHUB_OUTPUT"
 
       - name: Generate Pylint badge
-        uses: cicirello/gh-badge-builder@v1
+        uses: RocketChat/ghpages-dynamic-badges-action@v3.0.0
         with:
           label: pylint
           message: ${{ steps.lint.outputs.score }}
