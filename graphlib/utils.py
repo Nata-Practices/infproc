@@ -1,5 +1,5 @@
-import tkinter
-from tkinter import simpledialog, Entry, END, messagebox, Label
+from tkinter import simpledialog, Entry, END, messagebox, Label, LAST, Toplevel, Text, WORD, BOTH, DISABLED
+
 from .tooltip import ToolTip
 
 
@@ -44,7 +44,7 @@ def add_vertex(graph, x, y):
         graph.vertices.append({"id": vertex_id, "name": new_index, "text": vertex_text, "edges": []})
         update_graph_matrix(graph)
         update_matrix_display(graph)
-        
+
 
 def delete_vertex(graph, vertex):
     """
@@ -75,7 +75,7 @@ def delete_vertex(graph, vertex):
     graph.vertices.remove(vertex)
     update_graph_matrix(graph)
     update_matrix_display(graph)
-    
+
 
 def get_edge_coords(start_vertex, end_vertex, canvas):
     """
@@ -108,7 +108,7 @@ def create_edge(graph, start_vertex, end_vertex, weight):
         weight: Вес ребра.
     """
     sx, sy, ex, ey, mx, my = get_edge_coords(start_vertex, end_vertex, graph.canvas)
-    line_id = graph.canvas.create_line(sx, sy, ex, ey, arrow=tkinter.LAST)
+    line_id = graph.canvas.create_line(sx, sy, ex, ey, arrow=LAST)
     label_id = graph.canvas.create_text(mx, my - 10, text=str(weight), fill="red")
     graph.edges[line_id] = (start_vertex, end_vertex, weight, label_id)
     start_vertex["edges"].append(line_id)
@@ -133,7 +133,7 @@ def add_edge(graph, start_vertex):
         create_edge(graph, start_vertex, end_vertex, weight)
     else:
         messagebox.showwarning("Ошибка", "Данной вершины не существует")
-    
+
     update_matrix_display(graph)
 
 
@@ -180,8 +180,8 @@ def delete_edge(graph, start_vertex):
                 return
 
             messagebox.showwarning("Ошибка", "Дуга между этими вершинами не найдена.")
-    
-    
+
+
 def change_edge_weight(graph, start_vertex):
     """
     Изменяет вес ребра, запрашивая конечную вершину и новый вес.
@@ -259,6 +259,10 @@ def on_matrix_change(graph, event, x, y):
     Обрабатывает изменения в матрице смежности.
     При изменении веса дуги обновляет граф.
     """
+    if hasattr(event.widget, "_processing") and event.widget._processing:
+        return
+    event.widget._processing = True
+
     new_value = event.widget.get()
 
     try:
@@ -268,26 +272,36 @@ def on_matrix_change(graph, event, x, y):
         previous_weight = get_adjacency_matrix(graph)[x][y]
         event.widget.delete(0, END)
         event.widget.insert(0, str(previous_weight))
+        event.widget._processing = False
         return
 
     if x < len(graph.vertices) and y < len(graph.vertices):
         edge_found = False
-        edge_id = 0
-        for edge_id, (start_v, end_v, weight, _) in graph.edges.items():
+        for edge_id, (start_v, end_v, weight, label_id) in list(graph.edges.items()):
             if graph.vertices.index(start_v) == x and graph.vertices.index(end_v) == y:
-                graph.edges[edge_id] = (start_v, end_v, new_weight, _)
+                if new_weight == 0:
+                    graph.canvas.delete(edge_id)
+                    graph.canvas.delete(label_id)
+                    del graph.edges[edge_id]
+
+                    if edge_id in start_v["edges"]:
+                        start_v["edges"].remove(edge_id)
+                    return update_matrix_display(graph)
+
+                graph.edges[edge_id] = (start_v, end_v, new_weight, label_id)
+                graph.canvas.itemconfig(label_id, text=str(new_weight))
                 edge_found = True
                 break
 
-        if edge_found:
-            _, _, _, label_id = graph.edges[edge_id]
-            graph.canvas.itemconfig(label_id, text=str(new_weight))
-        else:
+        if not edge_found and new_weight != 0:
             start_vertex = graph.vertices[x]
             end_vertex = graph.vertices[y]
             create_edge(graph, start_vertex, end_vertex, new_weight)
 
         update_matrix_display(graph)
+
+    event.widget._processing = False
+
 
 def update_matrix_display(graph):
     """
@@ -300,6 +314,12 @@ def update_matrix_display(graph):
     graph.matrix_entries = []
 
     adjacency_matrix = get_adjacency_matrix(graph)
+
+    # Отображение размера матрицы над ней
+    n = len(graph.vertices)
+    graph.matrix_title.config(
+        text=f"Матрица смежности | Размер матрицы: {n}x{n}"
+    )
 
     # Создание заголовка матрицы (номера столбцов)
     header_row = []
@@ -332,7 +352,6 @@ def update_matrix_display(graph):
         label.grid(row=i + 1, column=0, padx=1, pady=1)
         row_entries.append(label)
         for j, value in enumerate(row_data):
-
             if i == j:
                 entry = Entry(graph.matrix_inner_frame, width=5, justify='center', state='readonly', bg="#f0f0f0")
                 entry.insert(0, "0")
@@ -341,6 +360,7 @@ def update_matrix_display(graph):
                 entry = Entry(graph.matrix_inner_frame, width=5, justify='center')
                 entry.insert(0, str(value))
                 entry.bind("<FocusOut>", lambda event, x=i, y=j: on_matrix_change(graph, event, x, y))
+                entry.bind("<Return>", lambda event, x=i, y=j: on_matrix_change(graph, event, x, y))
 
                 if value > 0:
                     entry.config(bg="#ccffcc")
@@ -354,12 +374,12 @@ def update_matrix_display(graph):
                 weight = f"Вес {value}" if value != 0 else "Нет связи"
                 ToolTip(entry, f"От {start_vertex} к {end_vertex}: {weight}")
 
-            entry.grid(row=i+1, column=j+1, padx=1, pady=1)
+            entry.grid(row=i + 1, column=j + 1, padx=1, pady=1)
             row_entries.append(entry)
 
         graph.matrix_entries.append(row_entries)
 
-            
+
 def update_graph_matrix(graph):
     """
     Обновляет матрицу смежности графа на основе текущих рёбер.
@@ -424,15 +444,15 @@ def display_incidence_matrix(graph):
         incidence_matrix[start_idx][idx] = 1
         incidence_matrix[end_idx][idx] = -1
 
-    matrix_window = tkinter.Toplevel(graph.root)
+    matrix_window = Toplevel(graph.root)
     matrix_window.title("Матрица инцидентности")
-    text_area = tkinter.Text(matrix_window, wrap=tkinter.WORD, width=50, height=20)
-    text_area.pack(fill=tkinter.BOTH, expand=True)
+    text_area = Text(matrix_window, wrap=WORD, width=50, height=20)
+    text_area.pack(fill=BOTH, expand=True)
 
     matrix_str = "Матрица инцидентности:\n"
 
     for row in incidence_matrix:
         matrix_str += " ".join(map(str, row)) + "\n"
 
-    text_area.insert(tkinter.END, matrix_str)
-    text_area.config(state=tkinter.DISABLED)
+    text_area.insert(END, matrix_str)
+    text_area.config(state=DISABLED)

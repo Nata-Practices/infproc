@@ -11,9 +11,8 @@ class PacketRoutingApp(BaseGraphApp):
         super().__init__(root, "Симуляция передачи пакетов", "3")
 
         self.selected_method = self.add_option_menu(
-            label_text="Метод маршрутизации:",
-            options=["Виртуальный канал", "Дейтаграммный метод"],
-            default_value="Виртуальный канал"
+            label_text="Метод маршрутизации",
+            options=["Виртуальный канал", "Дейтаграммный метод"]
         )
 
         self.add_button("Запустить передачу", lambda: self.start_transmission())
