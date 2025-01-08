@@ -72,8 +72,8 @@ def on_mouse_release(graph):
     graph.canvas.unbind("<B1-Motion>")
     graph.canvas.unbind("<ButtonRelease-1>")
     graph.selected_vertex = None
-    
-    
+
+
 def show_canvas_menu(graph, x, y, task):
     """
     Отображает контекстное меню для пустого места на холсте.

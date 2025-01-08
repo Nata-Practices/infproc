@@ -38,8 +38,8 @@ class ToolTip(object):
         tw.wm_overrideredirect(True)
         tw.wm_geometry(f"+{x}+{y}")
         label = tkinter.Label(tw, text=self.text, justify=tkinter.LEFT,
-                             background="#ffffe0", relief=tkinter.SOLID, borderwidth=1,
-                             font=("tahoma", "8", "normal"))
+                              background="#ffffe0", relief=tkinter.SOLID, borderwidth=1,
+                              font=("tahoma", "8", "normal"))
         label.pack(ipadx=1)
 
     def hidetip(self):
