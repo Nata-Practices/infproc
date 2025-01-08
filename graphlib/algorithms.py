@@ -1,3 +1,9 @@
+import random
+from tkinter import messagebox
+
+from .ui import display_packet_path, show_routing_tables
+
+
 def floyd_warshall(graph):
     """
     Реализует алгоритм Флойда-Уоршелла для нахождения кратчайших путей
@@ -153,3 +159,119 @@ def construct_floyd_path(next_vertex, start, end):
         path.append(start)
 
     return path
+
+
+def random_routing(graph):
+    """
+    Реализация случайной маршрутизации с поддержкой дейтаграммного метода.
+
+    Args:
+        graph: Объект графа.
+    """
+    total_packets = random.randint(1, 10)
+
+    def find_random_path():
+        """
+        Находит случайный маршрут от начальной до конечной вершины.
+
+        Returns:
+            path: Список вершин, представляющих случайный маршрут. Возвращает None, если маршрут не найден.
+        """
+        path = [graph.start_vertex]
+        current_vertex = graph.start_vertex
+        visited = set()
+
+        while current_vertex != graph.end_vertex:
+            visited.add(current_vertex["id"])
+
+            neighbors = [
+                edge[1] for edge in graph.edges.values()
+                if edge[0]["id"] == current_vertex["id"] and edge[1]["id"] not in visited
+            ]
+
+            if not neighbors:
+                return None
+
+            next_vertex = random.choice(neighbors)
+            path.append(next_vertex)
+            current_vertex = next_vertex
+
+        return path
+
+    all_paths = []
+
+    for _ in range(total_packets):
+        path = find_random_path()
+        if path is None:
+            messagebox.showwarning("Ошибка", "Не удалось найти путь до конечной вершины для одного из пакетов.")
+            return
+        all_paths.append(path)
+
+    for packet_index, path in enumerate(all_paths):
+        display_packet_path(graph, path, "Случайная маршрутизация", total_packets)
+
+
+def flooding_routing(graph):
+    """
+    Реализация лавинной маршрутизации.
+
+    Args:
+        graph: Объект графа.
+    """
+    path = []
+    queue = [(graph.start_vertex, [graph.start_vertex])]
+    visited = set()
+
+    while queue:
+        current_vertex, current_path = queue.pop(0)
+        if current_vertex["id"] in visited:
+            continue
+        visited.add(current_vertex["id"])
+
+        if current_vertex == graph.end_vertex:
+            path = current_path
+            break
+
+        neighbors = [edge[1] for edge in graph.edges.values() if edge[0] == current_vertex]
+        for neighbor in neighbors:
+            queue.append((neighbor, current_path + [neighbor]))
+
+    if not path:
+        messagebox.showwarning("Ошибка", "Не удалось найти путь до конечной вершины.")
+        return
+
+    display_packet_path(graph, path, "Лавинная маршрутизация")
+
+
+def historical_routing(graph):
+    """
+    Реализация маршрутизации по предыдущему опыту.
+
+    Args:
+        graph: Объект графа.
+    """
+    graph.routing_tables = {vertex["name"]: {} for vertex in graph.vertices}
+
+    start_idx = graph.vertices.index(graph.start_vertex)
+    end_idx = graph.vertices.index(graph.end_vertex)
+    distance, path = dijkstra(graph.graph, start_idx, end_idx, True)
+
+    if not path:
+        messagebox.showwarning("Ошибка", "Не удалось найти путь до конечной вершины.")
+        return
+
+    total_weight = 0
+    for i in range(len(path) - 1):
+        current_node = graph.vertices[path[i]]["name"]
+        next_node = graph.vertices[path[i + 1]]["name"]
+        destination = graph.vertices[path[-1]]["name"]
+        edge_weight = graph.graph[path[i]][path[i + 1]]
+        total_weight += edge_weight
+
+        graph.routing_tables[current_node][destination] = {
+            "next_hop": next_node,
+            "edge_weight": edge_weight
+        }
+
+    display_packet_path(graph, path, "Маршрутизация по предыдущему опыту")
+    show_routing_tables(graph)

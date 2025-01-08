@@ -290,6 +290,7 @@ def on_matrix_change(graph, event, x, y):
 
                 graph.edges[edge_id] = (start_v, end_v, new_weight, label_id)
                 graph.canvas.itemconfig(label_id, text=str(new_weight))
+                graph.graph[x][y] = new_weight
                 edge_found = True
                 break
 
@@ -297,6 +298,7 @@ def on_matrix_change(graph, event, x, y):
             start_vertex = graph.vertices[x]
             end_vertex = graph.vertices[y]
             create_edge(graph, start_vertex, end_vertex, new_weight)
+            graph.graph[x][y] = new_weight
 
         update_matrix_display(graph)
 
@@ -456,3 +458,17 @@ def display_incidence_matrix(graph):
 
     text_area.insert(END, matrix_str)
     text_area.config(state=DISABLED)
+
+
+def on_packet_info_window_close(graph):
+    """Обработчик закрытия окна информации о пакетах."""
+    if graph.packet_info_window:
+        graph.packet_info_window.destroy()
+        graph.packet_info_window = None
+
+
+def on_routing_table_window_close(graph):
+    """Обработчик закрытия окна таблиц маршрутизации."""
+    if graph.routing_table_window:
+        graph.routing_table_window.destroy()
+        graph.routing_table_window = None

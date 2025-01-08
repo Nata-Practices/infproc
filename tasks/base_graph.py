@@ -9,7 +9,7 @@ class BaseGraphApp:
         root.title(title)
 
         # Увеличиваем ширину окна для размещения графа и матрицы
-        window_width, window_height = 1250, 450
+        window_width, window_height = 1250 if task != "3" else 1300, 450
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
         position_top = (screen_height - window_height) // 2
@@ -61,11 +61,12 @@ class BaseGraphApp:
         self.start_vertex = None
         self.end_vertex = None
 
-        # Специфичная инициализация для задачи 3
         if task == "3":
             self.packet_info_window = None
+            self.routing_table_window = None
+            self.packet_log = []
             self.routing_tables = {}
-            self.packet_number = 1
+            self.counter_of_tries = 0
 
         # Привязка обработчиков событий
         self.canvas.bind("<Button-1>", lambda event: graphlib.on_left_click(self, event))
