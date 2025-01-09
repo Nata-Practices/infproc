@@ -1,7 +1,7 @@
 import tkinter as tk
-from tkinter import messagebox
 
 from tasks.first_task import GraphApp
+from tasks.four_task import HTTPApp
 from tasks.second_task import FloydApp
 from tasks.third_task import PacketRoutingApp
 
@@ -45,7 +45,7 @@ class MainMenu:
 
         self.lab4_button = tk.Button(
             _root,
-            text="Лабораторная работа 4",
+            text="Лабораторная работа 4: HTTP сервер",
             width=50,
             command=self.open_lab4
         )
@@ -68,7 +68,8 @@ class MainMenu:
         PacketRoutingApp(lab3_window)
 
     def open_lab4(self):
-        messagebox.showinfo("Лабораторная работа 4", "Лабораторная работа 4 еще не реализована.")
+        lab4_window = tk.Toplevel(self.root)
+        HTTPApp(lab4_window)
 
     def exit_app(self):
         self.root.destroy()

@@ -2,3 +2,6 @@
 .venv
 pdf
 __pycache__
+cgi-bin
+*.html
+*.txt
