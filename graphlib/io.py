@@ -5,7 +5,7 @@ from tkinter import messagebox, filedialog
 from .utils import add_vertex, create_edge, set_end_vertex, set_start_vertex, update_matrix_display
 
 
-def save_graph(graph, task):
+def save_graph(graph):
     """
     Сохраняет текущий граф в файл JSON.
 
@@ -36,7 +36,7 @@ def save_graph(graph, task):
     messagebox.showinfo("Сохранение", f"Граф сохранен в файл {os.path.basename(file_path)}")
 
 
-def load_graph(graph, task):
+def load_graph(graph):
     """
    Загружает граф из файла JSON.
 

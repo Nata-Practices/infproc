@@ -10,8 +10,8 @@ class PacketRoutingApp(BaseGraphApp):
         self.add_button("Случайная маршрутизация", lambda: self.start_routing("random"))
         self.add_button("Лавинная маршрутизация", lambda: self.start_routing("flooding"))
         self.add_button("Маршрутизация по предыдущему опыту", lambda: self.start_routing("historical"))
-        self.add_button("Сохранить граф", lambda: graphlib.save_graph(self, "3"))
-        self.add_button("Загрузить граф", lambda: graphlib.load_graph(self, "3"))
+        self.add_button("Сохранить граф", lambda: graphlib.save_graph(self))
+        self.add_button("Загрузить граф", lambda: graphlib.load_graph(self))
 
     def start_routing(self, algorithm):
         if not (self.start_vertex and self.end_vertex):

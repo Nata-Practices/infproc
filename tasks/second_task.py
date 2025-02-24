@@ -11,8 +11,8 @@ class FloydApp(BaseGraphApp):
         self.add_button("Запустить Дейкстру", lambda: self.run_algorithm("dijkstra"))
         self.add_button("Запустить Флойда", lambda: self.run_algorithm("floyd"))
         self.add_button("Сравнить время выполнения", lambda: self.compare_algorithms())
-        self.add_button("Сохранить граф", lambda: graphlib.save_graph(self, "2"))
-        self.add_button("Загрузить граф", lambda: graphlib.load_graph(self, "2"))
+        self.add_button("Сохранить граф", lambda: graphlib.save_graph(self))
+        self.add_button("Загрузить граф", lambda: graphlib.load_graph(self))
 
     def run_algorithm(self, algorithm):
         if not self.graph:

@@ -39,7 +39,7 @@ def on_right_click(graph, event, task):
     if vertex is not None:
         show_vertex_menu(graph, vertex, event.x, event.y, task)
     else:
-        show_canvas_menu(graph, event.x, event.y, task)
+        show_canvas_menu(graph, event.x, event.y)
 
 
 def on_mouse_drag(graph, event):
@@ -76,7 +76,7 @@ def on_mouse_release(graph):
     graph.selected_vertex = None
 
 
-def show_canvas_menu(graph, x, y, task):
+def show_canvas_menu(graph, x, y):
     """
     Отображает контекстное меню для пустого места на холсте.
 
@@ -84,12 +84,11 @@ def show_canvas_menu(graph, x, y, task):
         graph: Объект графа.
         x: Координата x для отображения меню.
         y: Координата y для отображения меню.
-        task: Тип задачи (может изменять доступные опции в меню).
     """
     menu = tkinter.Menu(graph.root, tearoff=0)
     menu.add_command(label="Добавить вершину", command=lambda: add_vertex(graph, x, y))
-    menu.add_command(label="Сохранить граф", command=lambda: save_graph(graph, task))
-    menu.add_command(label="Загрузить граф", command=lambda: load_graph(graph, task))
+    menu.add_command(label="Сохранить граф", command=lambda: save_graph(graph))
+    menu.add_command(label="Загрузить граф", command=lambda: load_graph(graph))
     menu.add_command(label="Показать матрицу инцидентности", command=lambda: display_incidence_matrix(graph))
     graph.current_menu = menu
     menu.post(x + graph.root.winfo_rootx(), y + graph.root.winfo_rooty())

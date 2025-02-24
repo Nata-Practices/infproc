@@ -8,8 +8,8 @@ class GraphApp(BaseGraphApp):
     def __init__(self, root):
         super().__init__(root, "Редактор графа", "1")
         self.add_button("Найти кратчайший путь", self.find_shortest_path)
-        self.add_button("Сохранить граф", lambda: graphlib.save_graph(self, "1"))
-        self.add_button("Загрузить граф", lambda: graphlib.load_graph(self, "1"))
+        self.add_button("Сохранить граф", lambda: graphlib.save_graph(self))
+        self.add_button("Загрузить граф", lambda: graphlib.load_graph(self))
 
     def find_shortest_path(self):
         if not (self.start_vertex and self.end_vertex):
