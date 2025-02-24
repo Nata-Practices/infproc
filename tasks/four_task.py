@@ -31,14 +31,16 @@ class HTTPApp(BaseGraphApp):
 
     def get_server_options(self):
         try:
+            # Получение опций для всего сервера
             server_response = requests.options("http://localhost:8000")
             server_options = "\n".join([f"{key}: {value}" for key, value in server_response.headers.items()])
             messagebox.showinfo("Опции сервера", f"Опции самого сервера:\n{server_options}")
 
-            if self.predefined_url:
-                resource_response = requests.options(self.predefined_url)
-                resource_options = "\n".join([f"{key}: {value}" for key, value in resource_response.headers.items()])
-                messagebox.showinfo("Опции ресурса", f"Опции ресурса:\n{resource_options}")
+            # Получение опций для конкретного ресурса, например, index.html
+            resource_url = "http://localhost:8000/index.html"
+            resource_response = requests.options(resource_url)
+            resource_options = "\n".join([f"{key}: {value}" for key, value in resource_response.headers.items()])
+            messagebox.showinfo("Опции ресурса", f"Опции ресурса (index.html):\n{resource_options}")
         except Exception as e:
             messagebox.showerror("Ошибка", str(e))
 
@@ -94,7 +96,7 @@ def generate_html():
     print("")  # Пустая строка после заголовка обязательна!
     print("<html><body><h1>Environment Variables</h1><table border=1>")
     for key, value in os.environ.items():
-        print(f"<tr><td>{key}</td><td>{value}</td></tr>")
+        print(f"<tr><td>{{key}}</td><td>{{value}}</td></tr>")
     print("</table></body></html>")
 
 generate_html()
