@@ -94,12 +94,12 @@ class FloydApp(BaseGraphApp):
         dijkstra_data = []
         for entry in result_dijkstra:
             dijkstra_data.append(entry)
-        
+
         # Подготовка данных для Флойда-Уоршелла
         floyd_data = []
         for entry in result_floyd:
             floyd_data.append(entry)
-        
+
         # Создание таблиц
         create_table(dijkstra_frame, dijkstra_data, elapsed_time_dijkstra, "Дейкстра")
         create_table(floyd_frame, floyd_data, elapsed_time_floyd, "Флойд-Уоршелл")
@@ -129,7 +129,7 @@ class FloydApp(BaseGraphApp):
                         result.append((i, j, "Не существует", "∞"))
 
         return result
-    
+
     def run_algorithm(self, algorithm):
         if not self.graph:
             messagebox.showwarning("Ошибка", "Граф пуст. Добавьте вершины и дуги.")

@@ -9,8 +9,19 @@ class BaseGraphApp:
         root.title(title)
 
         # Ширина окна и его позиционирование
-        window_width, window_height = 1250 if task in (
-            "1", "2") else 1300 if task == "3" else 300, 500 if task != "4" else 300
+        if task in ("1", "2"):
+            window_width = 1250
+        elif task == "3":
+            window_width = 1300
+        else:
+            window_width = 300
+
+        if task == "3":
+            window_height = 900
+        elif task != "4":
+            window_height = 500
+        else:
+            window_height = 300
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
         position_top = (screen_height - window_height) // 2

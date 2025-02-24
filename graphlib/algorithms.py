@@ -1,7 +1,7 @@
 import random
 from tkinter import messagebox
 
-from .ui import display_packet_path, show_routing_tables
+from .ui import display_packet_path
 
 
 def floyd_warshall(graph):
@@ -161,14 +161,20 @@ def construct_floyd_path(next_vertex, start, end):
     return path
 
 
-def random_routing(graph):
+def random_routing(graph, num_packets=1, protocol='TCP'):
     """
     Реализация случайной маршрутизации с поддержкой дейтаграммного метода.
 
     Args:
         graph: Объект графа.
+        num_packets: Количество пакетов для маршрутизации.
+        protocol: Протокол передачи данных ('TCP' или 'UDP').
+
+    Returns:
+        Tuple[List[List[dict]], str]: Список путей для каждого пакета и название алгоритма.
     """
-    total_packets = random.randint(1, 10)
+    total_packets = num_packets
+    algorithm_name = "Случайная маршрутизация"
 
     def find_random_path():
         """
@@ -204,53 +210,74 @@ def random_routing(graph):
         path = find_random_path()
         if path is None:
             messagebox.showwarning("Ошибка", "Не удалось найти путь до конечной вершины для одного из пакетов.")
-            return
+            return [], algorithm_name
         all_paths.append(path)
 
-    for packet_index, path in enumerate(all_paths):
+    for packet_index, path in enumerate(all_paths, start=1):
         display_packet_path(graph, path, "Случайная маршрутизация", total_packets)
 
+    return all_paths, algorithm_name
 
-def flooding_routing(graph):
+
+def flooding_routing(graph, num_packets=1, protocol='TCP'):
     """
     Реализация лавинной маршрутизации.
 
     Args:
         graph: Объект графа.
+        num_packets: Количество пакетов для маршрутизации.
+        protocol: Протокол передачи данных ('TCP' или 'UDP').
+
+    Returns:
+        Tuple[List[List[dict]], str]: Список путей для каждого пакета и название алгоритма.
     """
-    path = []
-    queue = [(graph.start_vertex, [graph.start_vertex])]
-    visited = set()
+    algorithm_name = "Лавинная маршрутизация"
+    all_paths = []
 
-    while queue:
-        current_vertex, current_path = queue.pop(0)
-        if current_vertex["id"] in visited:
-            continue
-        visited.add(current_vertex["id"])
+    for _ in range(num_packets):
+        path = []
+        queue = [(graph.start_vertex, [graph.start_vertex])]
+        visited = set()
 
-        if current_vertex == graph.end_vertex:
-            path = current_path
-            break
+        while queue:
+            current_vertex, current_path = queue.pop(0)
+            if current_vertex["id"] in visited:
+                continue
+            visited.add(current_vertex["id"])
 
-        neighbors = [edge[1] for edge in graph.edges.values() if edge[0] == current_vertex]
-        for neighbor in neighbors:
-            queue.append((neighbor, current_path + [neighbor]))
+            if current_vertex == graph.end_vertex:
+                path = current_path
+                break
 
-    if not path:
-        messagebox.showwarning("Ошибка", "Не удалось найти путь до конечной вершины.")
-        return
+            neighbors = [edge[1] for edge in graph.edges.values() if edge[0] == current_vertex]
+            for neighbor in neighbors:
+                queue.append((neighbor, current_path + [neighbor]))
 
-    display_packet_path(graph, path, "Лавинная маршрутизация")
+        if not path:
+            messagebox.showwarning("Ошибка", "Не удалось найти путь до конечной вершины.")
+            return [], algorithm_name
+
+        all_paths.append(path)
+
+        display_packet_path(graph, path, "Лавинная маршрутизация", num_packets)
+
+    return all_paths, algorithm_name
 
 
-def historical_routing(graph):
+def historical_routing(graph, num_packets=1, protocol='TCP'):
     """
     Реализация маршрутизации по предыдущему опыту.
 
     Args:
         graph: Объект графа.
+        num_packets: Количество пакетов для маршрутизации.
+        protocol: Протокол передачи данных ('TCP' или 'UDP').
+
+    Returns:
+        Tuple[List[List[dict]], dict, str]: Список путей для каждого пакета, таблица маршрутизации и название алгоритма.
     """
-    graph.routing_tables = {vertex["name"]: {} for vertex in graph.vertices}
+    algorithm_name = "Маршрутизация по предыдущему опыту"
+    routing_tables = {vertex["name"]: {} for vertex in graph.vertices}
 
     start_idx = graph.vertices.index(graph.start_vertex)
     end_idx = graph.vertices.index(graph.end_vertex)
@@ -258,7 +285,7 @@ def historical_routing(graph):
 
     if not path:
         messagebox.showwarning("Ошибка", "Не удалось найти путь до конечной вершины.")
-        return
+        return [], routing_tables, algorithm_name
 
     total_weight = 0
     for i in range(len(path) - 1):
@@ -268,10 +295,14 @@ def historical_routing(graph):
         edge_weight = graph.graph[path[i]][path[i + 1]]
         total_weight += edge_weight
 
-        graph.routing_tables[current_node][destination] = {
+        routing_tables[current_node][destination] = {
             "next_hop": next_node,
             "edge_weight": edge_weight
         }
 
-    display_packet_path(graph, path, "Маршрутизация по предыдущему опыту")
-    show_routing_tables(graph)
+    all_paths = [path for _ in range(num_packets)]
+
+    for _ in range(num_packets):
+        display_packet_path(graph, path, "Маршрутизация по предыдущему опыту", num_packets)
+
+    return all_paths, routing_tables, algorithm_name

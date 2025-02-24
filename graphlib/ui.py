@@ -194,18 +194,7 @@ def display_packet_path(graph, path, algorithm_name, total_packets=None):
         f"Время жизни (hop limit): {hop_limit} пересылок\n"
     )
 
-    if not graph.packet_info_window or not graph.packet_info_window.winfo_exists():
-        graph.packet_info_window = tkinter.Toplevel(graph.root)
-        graph.packet_info_window.resizable(False, False)
-        graph.packet_info_window.title("Информация о пакетах")
-        graph.packet_info_window.protocol("WM_DELETE_WINDOW", lambda: on_packet_info_window_close(graph))
-
-        graph.packet_info_text = tkinter.Text(graph.packet_info_window, wrap="word", width=50, height=20)
-        graph.packet_info_text.pack(fill=tkinter.BOTH, expand=True)
-
     graph.packet_log.append(packet_info)
-    graph.packet_info_text.insert(tkinter.END, packet_info + "<" + ("=" * 45) + ">\n")
-    graph.packet_info_text.see(tkinter.END)
     highlight_path(graph, path, packet_size, algorithm_name)
 
 
