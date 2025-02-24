@@ -1,6 +1,6 @@
 import json
 import os
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 
 from .utils import add_vertex, create_edge, set_end_vertex, set_start_vertex, update_matrix_display
 
@@ -20,31 +20,45 @@ def save_graph(graph, task):
         "edges": [(graph.vertices.index(start_v), graph.vertices.index(end_v), weight) for
                   _, (start_v, end_v, weight, _) in graph.edges.items()]
     }
-    if not os.path.exists("saves"):
-        os.makedirs("saves")
 
-    with open(f"saves/graph_{task}.json", "w") as file:
+    file_path = filedialog.asksaveasfilename(
+        defaultextension=".json",
+        filetypes=[("JSON files", "*.json")],
+        initialdir="saves",
+        title="Сохранить граф как"
+    )
+    if not file_path:
+        return
+
+    with open(file_path, "w") as file:
         json.dump(graph_data, file)
-    messagebox.showinfo("Сохранение", f"Граф сохранен в файл graph_{task}.json")
+
+    messagebox.showinfo("Сохранение", f"Граф сохранен в файл {os.path.basename(file_path)}")
 
 
 def load_graph(graph, task):
     """
-    Загружает граф из файла JSON.
+   Загружает граф из файла JSON.
 
-    Args:
-        graph: Объект графа.
-        task: Номер задания.
+   Args:
+       graph: Объект графа.
+       task: Номер задания.
 
-    Raises:
-        FileNotFoundError: Если файл с графом не найден.
-        KeyError: Если формат данных некорректен.
-    """
+   Raises:
+       FileNotFoundError: Если файл с графом не найден.
+       KeyError: Если формат данных некорректен.
+   """
     try:
-        if not os.path.exists("saves"):
-            os.makedirs("saves")
+        file_path = filedialog.askopenfilename(
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json")],
+            initialdir="saves",
+            title="Загрузить граф из"
+        )
+        if not file_path:
+            return
 
-        with open(f"saves/graph_{task}.json", "r") as f:
+        with open(file_path, "r") as f:
             graph_data = json.load(f)
 
         clear_graph(graph)
@@ -68,8 +82,10 @@ def load_graph(graph, task):
 
         update_matrix_display(graph)
 
+        messagebox.showinfo("Загрузка", f"Граф загружен из файла {os.path.basename(file_path)}")
+
     except FileNotFoundError:
-        messagebox.showerror("Ошибка", f"Файл graph_{task}.json не найден")
+        messagebox.showerror("Ошибка", f"Файл не найден")
     except KeyError as e:
         messagebox.showerror("Ошибка", f"Некорректный формат данных: {e}")
 
