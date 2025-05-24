@@ -36,13 +36,13 @@ def save_graph(graph):
     messagebox.showinfo("Сохранение", f"Граф сохранен в файл {os.path.basename(file_path)}")
 
 
-def load_graph(graph):
+def load_graph(graph, direction: bool = True):
     """
    Загружает граф из файла JSON.
 
    Args:
        graph: Объект графа.
-       task: Номер задания.
+       direction: Признак направленности графа.
 
    Raises:
        FileNotFoundError: Если файл с графом не найден.
@@ -70,7 +70,7 @@ def load_graph(graph):
         for start_idx, end_idx, weight in graph_data["edges"]:
             start_vertex = graph.vertices[start_idx]
             end_vertex = graph.vertices[end_idx]
-            create_edge(graph, start_vertex, end_vertex, weight)
+            create_edge(graph, start_vertex, end_vertex, weight, direction)
 
         if graph_data["start_vertex"] is not None:
             graph.start_vertex = graph.vertices[graph_data["start_vertex"]]

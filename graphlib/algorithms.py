@@ -190,10 +190,13 @@ def random_routing(graph, num_packets=1, protocol='TCP'):
         while current_vertex != graph.end_vertex:
             visited.add(current_vertex["id"])
 
-            neighbors = [
-                edge[1] for edge in graph.edges.values()
-                if edge[0]["id"] == current_vertex["id"] and edge[1]["id"] not in visited
-            ]
+            # Для неориентированного графа учитываем ребра в обоих направлениях
+            neighbors = []
+            for edge in graph.edges.values():
+                if edge[0]["id"] == current_vertex["id"] and edge[1]["id"] not in visited:
+                    neighbors.append(edge[1])
+                if edge[1]["id"] == current_vertex["id"] and edge[0]["id"] not in visited:
+                    neighbors.append(edge[0])
 
             if not neighbors:
                 return None
@@ -214,7 +217,7 @@ def random_routing(graph, num_packets=1, protocol='TCP'):
         all_paths.append(path)
 
     for packet_index, path in enumerate(all_paths, start=1):
-        display_packet_path(graph, path, "Случайная маршрутизация", total_packets)
+        display_packet_path(graph, path, algorithm_name, total_packets)
 
     return all_paths, algorithm_name
 
@@ -259,7 +262,7 @@ def flooding_routing(graph, num_packets=1, protocol='TCP'):
 
         all_paths.append(path)
 
-        display_packet_path(graph, path, "Лавинная маршрутизация", num_packets)
+        display_packet_path(graph, path, algorithm_name, num_packets)
 
     return all_paths, algorithm_name
 
@@ -277,7 +280,7 @@ def historical_routing(graph, num_packets=1, protocol='TCP'):
         Tuple[List[List[dict]], dict, str]: Список путей для каждого пакета, таблица маршрутизации и название алгоритма.
     """
     algorithm_name = "Маршрутизация по предыдущему опыту"
-    routing_tables = {vertex["name"]: {} for vertex in graph.vertices}
+    routing_tables = {}
 
     start_idx = graph.vertices.index(graph.start_vertex)
     end_idx = graph.vertices.index(graph.end_vertex)
@@ -287,22 +290,13 @@ def historical_routing(graph, num_packets=1, protocol='TCP'):
         messagebox.showwarning("Ошибка", "Не удалось найти путь до конечной вершины.")
         return [], routing_tables, algorithm_name
 
-    total_weight = 0
-    for i in range(len(path) - 1):
-        current_node = graph.vertices[path[i]]["name"]
-        next_node = graph.vertices[path[i + 1]]["name"]
-        destination = graph.vertices[path[-1]]["name"]
-        edge_weight = graph.graph[path[i]][path[i + 1]]
-        total_weight += edge_weight
-
-        routing_tables[current_node][destination] = {
-            "next_hop": next_node,
-            "edge_weight": edge_weight
-        }
+    destination = graph.vertices[path[-1]]["name"]
+    hops = len(path) - 1
+    routing_tables[destination] = {"hops": hops}
 
     all_paths = [path for _ in range(num_packets)]
 
     for _ in range(num_packets):
-        display_packet_path(graph, path, "Маршрутизация по предыдущему опыту", num_packets)
+        display_packet_path(graph, path, algorithm_name, num_packets)
 
     return all_paths, routing_tables, algorithm_name

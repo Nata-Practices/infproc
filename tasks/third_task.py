@@ -31,7 +31,7 @@ class PacketRoutingApp(BaseGraphApp):
         self.add_button("Лавинная маршрутизация", lambda: self.start_routing("flooding"))
         self.add_button("Маршрутизация по предыдущему опыту", lambda: self.start_routing("historical"))
         self.add_button("Сохранить граф", lambda: graphlib.save_graph(self))
-        self.add_button("Загрузить граф", lambda: graphlib.load_graph(self))
+        self.add_button("Загрузить граф", lambda: graphlib.load_graph(self, False))
 
         results_frame = Frame(root, padx=10, pady=10)
         results_frame.pack(side='bottom', fill='both', expand=True)
@@ -39,11 +39,11 @@ class PacketRoutingApp(BaseGraphApp):
         routing_table_frame = LabelFrame(results_frame, text="Таблица маршрутизации", padx=10, pady=10)
         routing_table_frame.pack(side='left', fill='both', padx=5, pady=5)
 
-        self.routing_tree = ttk.Treeview(routing_table_frame, columns=("Destination", "Next Hop", "Edge Weight"),
-                                         show='headings')
+        # self.routing_tree = ttk.Treeview(routing_table_frame, columns=("Destination", "Next Hop", "Hops"), show='headings')
+        self.routing_tree = ttk.Treeview(routing_table_frame, columns=("Destination", "Hops"), show='headings')
         self.routing_tree.heading("Destination", text="Пункт назначения")
-        self.routing_tree.heading("Next Hop", text="Следующий узел")
-        self.routing_tree.heading("Edge Weight", text="Вес рёбра")
+        # self.routing_tree.heading("Next Hop", text="Следующий узел")
+        self.routing_tree.heading("Hops", text="Пройденные узлы")
         self.routing_tree.pack(fill='both', expand=True)
 
         packet_data_frame = LabelFrame(results_frame, text="Данные о пакетах", padx=10, pady=10)
@@ -84,46 +84,14 @@ class PacketRoutingApp(BaseGraphApp):
 
         self.counter_of_tries += 1
         self.reset_tables()
+        routing_tables = {}
 
         if algorithm == "random":
             all_paths, algorithm_name = graphlib.algorithms.random_routing(self, num_packets, protocol)
-            routing_tables = {}
-
-            for path in all_paths:
-                for i in range(len(path) - 1):
-                    current_node = path[i]["name"]
-                    next_node = path[i + 1]["name"]
-                    destination = path[-1]["name"]
-
-                    if current_node not in routing_tables:
-                        routing_tables[current_node] = {}
-
-                    if destination not in routing_tables[current_node]:
-                        routing_tables[current_node][destination] = {
-                            "next_hop": next_node,
-                            "edge_weight": self.get_edge_weight(current_node, next_node)
-                        }
-
         elif algorithm == "flooding":
             all_paths, algorithm_name = graphlib.algorithms.flooding_routing(self, num_packets, protocol)
-            routing_tables = {}
-
-            for path in all_paths:
-                for i in range(len(path) - 1):
-                    current_node = path[i]["name"]
-                    next_node = path[i + 1]["name"]
-                    destination = path[-1]["name"]
-
-                    if current_node not in routing_tables:
-                        routing_tables[current_node] = {}
-
-                    routing_tables[current_node].setdefault(destination, []).append({
-                        "next_hop": next_node,
-                        "edge_weight": self.get_edge_weight(current_node, next_node)
-                    })
         elif algorithm == "historical":
-            all_paths, routing_tables, algorithm_name = graphlib.algorithms.historical_routing(self, num_packets,
-                                                                                               protocol)
+            all_paths, routing_tables, algorithm_name = graphlib.algorithms.historical_routing(self, num_packets, protocol)
         else:
             messagebox.showwarning("Ошибка", "Неизвестный алгоритм маршрутизации.")
             return
@@ -131,8 +99,13 @@ class PacketRoutingApp(BaseGraphApp):
         if not all_paths:
             return
 
-        if routing_tables:
-            self.update_routing_table(routing_tables)
+        if algorithm != "historical":
+            for path in all_paths:
+                destination = path[-1]["name"]
+                hops = len(path) - 1
+                routing_tables[destination] = {"hops": hops}
+
+        self.update_routing_table(routing_tables)
 
         for packet_index, path in enumerate(all_paths, start=1):
             packet_size = random.randint(100, 1000)
@@ -154,9 +127,10 @@ class PacketRoutingApp(BaseGraphApp):
             self.routing_tree.delete(item)
 
         for destination, info in routing_tables.items():
-            next_hop = info.get("next_hop", "")
-            edge_weight = info.get("edge_weight", "")
-            self.routing_tree.insert("", 'end', values=(destination, next_hop, edge_weight))
+            # next_hop = info.get("next_hop", "")
+            hops = info.get("hops", "")
+            # self.routing_tree.insert("", 'end', values=(destination, next_hop, hops))
+            self.routing_tree.insert("", 'end', values=(destination, hops))
 
     def update_packet_data(self, packet_id, path, protocol, packet_size, hop_limit):
         """

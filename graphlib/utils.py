@@ -97,7 +97,7 @@ def get_edge_coords(start_vertex, end_vertex, canvas):
     return sx, sy, ex, ey, mx, my
 
 
-def create_edge(graph, start_vertex, end_vertex, weight):
+def create_edge(graph, start_vertex, end_vertex, weight, direction=True):
     """
     Создаёт ребро между двумя вершинами с заданным весом.
 
@@ -106,22 +106,30 @@ def create_edge(graph, start_vertex, end_vertex, weight):
         start_vertex: Вершина начала ребра.
         end_vertex: Вершина конца ребра.
         weight: Вес ребра.
+        direction: Если True (по умолчанию) — рисуется со стрелкой (ориентированный граф).
+                  Если False — рисуется просто линия (неориентированный граф).
     """
     sx, sy, ex, ey, mx, my = get_edge_coords(start_vertex, end_vertex, graph.canvas)
-    line_id = graph.canvas.create_line(sx, sy, ex, ey, arrow=LAST)
+
+    if direction:
+        line_id = graph.canvas.create_line(sx, sy, ex, ey, arrow=LAST)
+    else:
+        line_id = graph.canvas.create_line(sx, sy, ex, ey)
+
     label_id = graph.canvas.create_text(mx, my - 10, text=str(weight), fill="red")
     graph.edges[line_id] = (start_vertex, end_vertex, weight, label_id)
     start_vertex["edges"].append(line_id)
     update_graph_matrix(graph)
 
 
-def add_edge(graph, start_vertex):
+def add_edge(graph, start_vertex, direction=True):
     """
     Добавляет новое ребро.
 
     Args:
         graph: Объект графа.
         start_vertex: Начальная вершина ребра.
+        direction: Признак направленности графа.
     """
     end_vertex_index = simpledialog.askinteger(
         "Добавить дугу",
@@ -130,7 +138,7 @@ def add_edge(graph, start_vertex):
     if end_vertex_index is not None and 0 <= end_vertex_index < len(graph.vertices):
         end_vertex = graph.vertices[end_vertex_index]
         weight = simpledialog.askinteger("Вес дуги", "Введите вес дуги") or 1
-        create_edge(graph, start_vertex, end_vertex, weight)
+        create_edge(graph, start_vertex, end_vertex, weight, direction)
     else:
         messagebox.showwarning("Ошибка", "Данной вершины не существует")
 

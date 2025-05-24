@@ -3,8 +3,7 @@ import tkinter
 
 from .io import save_graph, load_graph
 from .utils import get_vertex_at, add_vertex, update_edge, display_incidence_matrix, set_end_vertex, set_start_vertex, \
-    delete_edge, delete_vertex, add_edge, change_edge_direction, change_edge_weight, on_routing_table_window_close, \
-    on_packet_info_window_close
+    delete_edge, delete_vertex, add_edge, change_edge_direction, change_edge_weight, on_routing_table_window_close
 
 
 def on_left_click(graph, event):
@@ -111,9 +110,12 @@ def show_vertex_menu(graph, vertex, x, y, task):
         menu.add_command(label="Установить как начальную вершину", command=lambda: set_start_vertex(graph, vertex))
         menu.add_command(label="Установить как конечную вершину", command=lambda: set_end_vertex(graph, vertex))
     menu.add_command(label="Удалить вершину", command=lambda: delete_vertex(graph, vertex))
-    menu.add_command(label="Добавить дугу", command=lambda: add_edge(graph, vertex))
+    if task == "3":
+        menu.add_command(label="Добавить дугу", command=lambda: add_edge(graph, vertex, False))
+    else:
+        menu.add_command(label="Добавить дугу", command=lambda: add_edge(graph, vertex))
+        menu.add_command(label="Сменить направление дуги", command=lambda: change_edge_direction(graph, vertex))
     menu.add_command(label="Изменить вес дуги", command=lambda: change_edge_weight(graph, vertex))
-    menu.add_command(label="Сменить направление дуги", command=lambda: change_edge_direction(graph, vertex))
     menu.add_command(label="Удалить дугу", command=lambda: delete_edge(graph, vertex))
     graph.current_menu = menu
     menu.post(x + graph.root.winfo_rootx(), y + graph.root.winfo_rooty())
@@ -213,18 +215,23 @@ def highlight_path(graph, path, packet_size, algorithm_name):
     for edge_id in graph.edges:
         graph.canvas.itemconfig(edge_id, fill="black")
 
-    edge_map = {
-        (graph.vertices.index(start_vertex), graph.vertices.index(end_vertex)): edge_id
-        for edge_id, (start_vertex, end_vertex, _, _) in graph.edges.items()
-    }
+    # Строим отображение для обоих направлений ребра
+    edge_map = {}
+    for edge_id, (start_vertex, end_vertex, _, _) in graph.edges.items():
+        si = graph.vertices.index(start_vertex)
+        ei = graph.vertices.index(end_vertex)
+        edge_map[(si, ei)] = edge_id
+        edge_map[(ei, si)] = edge_id
 
+    # Если path задан списком dict-вершин, приводим к списку индексов
     if isinstance(path[0], dict):
-        path = [graph.vertices.index(vertex) for vertex in path]
+        path = [graph.vertices.index(v) for v in path]
 
+    # Подсвечиваем каждый сегмент пути
     for i in range(len(path) - 1):
-        start_idx = path[i]
-        end_idx = path[i + 1]
-        edge_id = edge_map.get((start_idx, end_idx))
+        si = path[i]
+        ei = path[i + 1]
+        edge_id = edge_map.get((si, ei))
         if edge_id:
             graph.canvas.itemconfig(edge_id, fill="blue")
 
